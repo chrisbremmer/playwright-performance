@@ -209,3 +209,52 @@ Console output:
 ```bash
 1046.7000000476837
 ```
+
+### Layout Instability API (`layout-shift`)
+
+[The Layout Instability API](https://developer.mozilla.org/en-US/docs/Web/API/LayoutShift) provides information on all layout shifts. Use this API to evaluate the Core Web Vital [Cumulative Layout Shift](https://web.dev/articles/cls) (CLS).
+
+> Layout shifts are no single event but event streams. To calculate CLS initialize a `PerformanceObserver`, observe `layout-shift` entries and sum all shifts.
+
+[Code example](./scripts/layout-instability.js)
+
+```bash
+const { chromium } = require('playwright');
+
+(async () => {
+    const browser = await chromium.launch();
+    const page = await browser.newPage();
+    await page.goto('https://danube-web.shop/');
+
+    const cummulativeLayoutShift = await page.evaluate(() => {
+        return new Promise((resolve) => {
+            let CLS = 0;
+
+            new PerformanceObserver((l) => {
+                const entries = l.getEntries();
+
+                entries.forEach((entry) => {
+                    if (!entry.hadRecentInput) {
+                        CLS += entry.value;
+                    }
+                });
+
+                resolve(CLS);
+            }).observe({
+                type: 'layout-shift',
+                buffered: true,
+            });
+        });
+    });
+
+    console.log(parseFloat(cummulativeLayoutShift)); // 0.0001672498
+
+    await browser.close();
+})();
+```
+
+Console output:
+
+```bash
+0.00009616597493489583
+```
