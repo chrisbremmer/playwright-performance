@@ -16,8 +16,152 @@ The Navigation Timing and the Resource Timing performance APIs are W3C specifica
 
 [Code example](./scripts/navigation-timing.js)
 
+```bash
+(async () => {
+    const browser = await chromium.launch();
+    const page = await browser.newPage();
+    await page.goto('https://danube-web.shop/');
+
+    const navigationTimingJson = await page.evaluate(() =>
+        JSON.stringify(performance.getEntriesByType('navigation'))
+    );
+    const navigationTiming = JSON.parse(navigationTimingJson);
+
+    console.log(navigationTiming);
+
+    await browser.close();
+})();
+```
+
+Console output:
+
+```bash
+[{
+  name: 'https://danube-web.shop/',
+  entryType: 'navigation',
+  startTime: 0,
+  duration: 1243.7999999998137,
+  initiatorType: 'navigation',
+  nextHopProtocol: 'http/1.1',
+  workerStart: 0,
+  redirectStart: 0,
+  redirectEnd: 0,
+  fetchStart: 0.10000000009313226,
+  domainLookupStart: 1.2000000001862645,
+  domainLookupEnd: 11.100000000093132,
+  connectStart: 11.100000000093132,
+  connectEnd: 336.8000000002794,
+  secureConnectionStart: 102.89999999990687,
+  requestStart: 336.89999999990687,
+  responseStart: 432.39999999990687,
+  responseEnd: 433.70000000018626,
+  transferSize: 971,
+  encodedBodySize: 671,
+  decodedBodySize: 671,
+  serverTiming: [],
+  workerTiming: [],
+  unloadEventStart: 0,
+  unloadEventEnd: 0,
+  domInteractive: 1128.8999999999069,
+  domContentLoadedEventStart: 1128.8999999999069,
+  domContentLoadedEventEnd: 1130.8999999999069,
+  domComplete: 1235.3999999999069,
+  loadEventStart: 1235.3999999999069,
+  loadEventEnd: 1235.3999999999069,
+  type: 'navigate',
+  redirectCount: 0
+}]
+```
+
 ### Resource Timing API
 
 [The Resource Timing API](https://developer.mozilla.org/en-US/docs/Web/API/Performance_API/Resource_timing) allows us to zoom in on single resources and get accurate information about how quickly they loaded. For example, we could specifically look at our website's logo:
 
 [Code example](./scripts/resource-timing.js)
+
+```bash
+const { chromium } = require('playwright');
+
+(async () => {
+    const browser = await chromium.launch();
+    const page = await browser.newPage();
+    await page.goto('https://danube-web.shop/');
+
+    const resourceTimingJson = await page.evaluate(() =>
+        JSON.stringify(window.performance.getEntriesByType('resource'))
+    );
+
+    const resourceTiming = JSON.parse(resourceTimingJson);
+    const logoResourceTiming = resourceTiming.find((element) =>
+        element.name.includes('.svg')
+    );
+
+    console.log(logoResourceTiming);
+
+    await browser.close();
+})();
+```
+
+Console output:
+
+```bash
+{
+  name: 'https://danube-web.shop/static/logo-horizontal.svg',
+  entryType: 'resource',
+  startTime: 1149.1000000000931,
+  duration: 96.89999999990687,
+  initiatorType: 'img',
+  nextHopProtocol: 'http/1.1',
+  workerStart: 0,
+  redirectStart: 0,
+  redirectEnd: 0,
+  fetchStart: 1149.1000000000931,
+  domainLookupStart: 1149.1000000000931,
+  domainLookupEnd: 1149.1000000000931,
+  connectStart: 1149.1000000000931,
+  connectEnd: 1149.1000000000931,
+  secureConnectionStart: 1149.1000000000931,
+  requestStart: 1149.6000000000931,
+  responseStart: 1244.3000000002794,
+  responseEnd: 1246,
+  transferSize: 21049,
+  encodedBodySize: 20749,
+  decodedBodySize: 20749,
+  serverTiming: [],
+  workerTiming: []
+}
+```
+
+### Paint Timing API (`first-paint` and `first-contentful-paint`)
+
+[The Paint Timing API](https://developer.mozilla.org/en-US/docs/Web/API/PerformancePaintTiming) provides information on the first paint and the first contentful paint. Access the entries via `performance.getEntriesByType('paint')` or `performance.getEntriesByName('first-contentful-paint')`
+
+[Code example](./scripts/paint-timing.js)
+
+```bash
+const { chromium } = require('playwright');
+
+(async () => {
+    const browser = await chromium.launch();
+    const page = await browser.newPage();
+    await page.goto('https://danube-web.shop/');
+
+    const paintTimingJson = await page.evaluate(() =>
+        JSON.stringify(window.performance.getEntriesByType('paint'))
+    );
+    const paintTiming = JSON.parse(paintTimingJson);
+
+    console.log(paintTiming);
+
+    await browser.close();
+})();
+```
+
+Console output:
+
+```bash
+[
+  { name: 'first-paint', entryType: 'paint', startTime: 1149.5, duration: 0 },
+  { name: 'first-contentful-paint', entryType: 'paint', startTime: 1149.5, duration: 0 }
+]
+```
