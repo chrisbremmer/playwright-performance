@@ -1,3 +1,5 @@
+// https://developer.mozilla.org/en-US/docs/Web/API/Performance_API/Navigation_timing
+
 const { chromium } = require('playwright');
 
 (async () => {
