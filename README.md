@@ -165,3 +165,47 @@ Console output:
   { name: 'first-contentful-paint', entryType: 'paint', startTime: 1149.5, duration: 0 }
 ]
 ```
+
+### Largest Contentful Paint API (`largest-contentful-paint`)
+
+[The Largest Contentful Paint API](https://developer.mozilla.org/en-US/docs/Web/API/LargestContentfulPaint) provides information on all large paints. Use this API to evaluate the Core Web Vital [Largest Contentful Paint (LCP)](https://web.dev/articles/lcp).
+
+> Large contentful paints are not a single event but rather event streams. A large paint can always be followed by an even larger one.
+>
+> To evaluate the LCP initialize a `PerformanceObserver`, observe `largest-contentful-paint` entries and access the last emitted paint.
+
+[Code example](./scripts/largest-contentful-paint.js)
+
+```bash
+const { chromium } = require('playwright');
+
+(async () => {
+    const browser = await chromium.launch();
+    const page = await browser.newPage();
+    await page.goto('https://danube-web.shop/');
+
+    const largestContentfulPaint = await page.evaluate(() => {
+        return new Promise((resolve) => {
+            new PerformanceObserver((l) => {
+                const entries = l.getEntries();
+                // the last entry is the largest contentful paint
+                const largestPaintEntry = entries.at(-1);
+                resolve(largestPaintEntry.startTime);
+            }).observe({
+                type: 'largest-contentful-paint',
+                buffered: true,
+            });
+        });
+    });
+
+    console.log(parseFloat(largestContentfulPaint)); // 1139.39
+
+    await browser.close();
+})();
+```
+
+Console output:
+
+```bash
+1046.7000000476837
+```
