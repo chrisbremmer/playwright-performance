@@ -302,3 +302,37 @@ Console output:
 ```bash
 0
 ```
+
+### Chrome DevTools for performance
+
+If the browser performance APIs are not enough, the Chrome DevTools Protocol offers many great performance tools to leverage with Playwright
+
+One important example is network throttling, through which we can simulate the experience of users accessing our page with different network conditions.
+
+[Code example](./scripts/network-throttling.js)
+
+```bash
+const { chromium } = require('playwright');
+
+(async () => {
+    const browser = await chromium.launch();
+    const page = await browser.newPage();
+
+    const client = await page.context().newCDPSession(page);
+    await client.send('Network.enable');
+    await client.send('Network.emulateNetworkConditions', {
+        offline: false,
+        downloadThroughput: (4 * 1024 * 1024) / 8,
+        uploadThroughput: (3 * 1024 * 1024) / 8,
+        latency: 20,
+    });
+
+    await page.goto('https://danube-web.shop/');
+
+    // your flow and assertions
+
+    await browser.close();
+})();
+```
+
+The DevTools Protocol is quite extensive. Recommend exploring the [documentation](https://chromedevtools.github.io/devtools-protocol/) to get a comprehensive overview of its capabilities.
